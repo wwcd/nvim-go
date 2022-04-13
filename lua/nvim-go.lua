@@ -2,16 +2,16 @@ local utils = require('nvim-go.utils')
 
 local M = {}
 
-M.goimports = function(wait_ms)
-  utils.codeaction(nil, "source.organizeImports", wait_ms)
+M.goimports = function()
+  utils.codeaction(nil, "source.organizeImports", 3000)
 end
 
-M.gofillstruct = function(wait_ms)
-  utils.codeaction("fill_struct", "refactor.rewrite", wait_ms)
+M.gofillstruct = function()
+  utils.codeaction("fill_struct", "refactor.rewrite", 3000)
 end
 
 -- TODO
-M.gofix = function(wait_ms)
+M.gofix = function()
 end
 
 M.golint = function()
@@ -129,7 +129,7 @@ M.goinstall = function()
     'golang.org/x/tools/gopls@latest',
     'github.com/fatih/gomodifytags@latest',
     'github.com/koron/iferr@latest',
-    'github.com/golangci/golangci-lint@latest',
+    'github.com/golangci/golangci-lint/cmd/golangci-lint@latest',
   }
 
   for _, v in pairs(tools) do
