@@ -169,7 +169,7 @@ M.gonewfile = function()
 end
 
 M.setup = function(_)
-  vim.cmd([[command! -nargs=0 -range GoInstall call luaeval('require("nvim-go").goinstall(unpack(_A))', [<f-args>])]])
+  vim.api.nvim_create_user_command("GoInstall", M.goinstall, {})
   vim.api.nvim_create_autocmd({'BufWritePre'}, {pattern={'*.go'}, callback=M.goimports})
   vim.api.nvim_create_autocmd({'BufNewFile'}, {pattern={'*.go'}, callback=M.gonewfile})
 end
