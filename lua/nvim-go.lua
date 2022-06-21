@@ -60,7 +60,7 @@ end
 
 M.gotest = function()
   local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
-  vim.cmd('vs term://go test -v -coverprofile ' .. os.tmpname() .. ' .|startinsert')
+  vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' .|startinsert')
   vim.fn.chdir(origin_dir)
 end
 
@@ -85,14 +85,41 @@ M.gotestfunc = function()
   local fn_name = (ts_utils.get_node_text(expr:child(1)))[1]
   if fn_name:find("Test") == 1 then
     local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
-    vim.cmd('vs term://go test -v -coverprofile ' .. os.tmpname() .. ' -run ^' .. fn_name .. " .|startinsert")
+    vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run ^' .. fn_name .. " .|startinsert")
     vim.fn.chdir(origin_dir)
   end
 end
 
 --TODO
 M.gocov = function()
-  M.gotest()
+  local tmpfile = vim.fn.tempname()
+  local cmd = 'go test -v -coverprofile ' ..  tmpfile .. ' ' .. vim.fn.fnamemodify('%', ':p:h')
+  local callback = function(exitcode, _)
+    if exitcode ~= 0 then
+      vim.api.nvim_echo({{'[MODTIDY] FAILED', 'ErrorMsg'}}, false, {})
+      return
+    end
+
+    local matches = {}
+    for l in io.lines(tmpfile) do
+      local m = vim.fn.matchlist(l, [[\v([^:]+):(\d+)\.(\d+),(\d+)\.(\d+) (\d+) (\d+)]])
+      if vim.tbl_isempty(m) then
+        goto continue
+      end
+      local cov = {
+        file = m[2],
+        start_line = m[3],
+        start_colume = m[4],
+        end_line = m[5],
+        end_colume = m[6],
+        iscovered = m[8],
+      }
+      table.insert(matches, cov)
+      ::continue::
+    end
+    print(vim.inspect(matches))
+  end
+  utils.asynccmd(cmd, callback)
 end
 
 M.goiferr = function()
@@ -163,7 +190,7 @@ end
 M.gonewfile = function()
   local handle = io.popen("go list -f '{{.Name}}' " .. vim.fn.expand("%:p:h"))
   local name = handle:read('*line')
-  if handle:close() == true then
+  if handle:close() == true and name ~= nil then
     vim.fn.append(0, "package "..name)
   end
 end

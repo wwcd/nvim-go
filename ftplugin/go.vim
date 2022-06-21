@@ -28,7 +28,7 @@ command! -nargs=0 -range GoIferr call luaeval('require("nvim-go").goiferr(unpack
 command! -nargs=0 -range GoRun call luaeval('require("nvim-go").gorun(unpack(_A))', [<f-args>])
 command! -nargs=0 -range GoImports call luaeval('require("nvim-go").goimports(unpack(_A))', [<f-args>])
 
-compiler go
+" compiler go
 
 " restore Vi compatibility settings
 let &cpo = s:cpo_save
