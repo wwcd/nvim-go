@@ -20,7 +20,7 @@ M.golint = function()
     vim.fn.setqflist({}, ' ', {
       title = cmd,
       lines = lines,
-      efm = vim.api.nvim_buf_get_option(0, "errorformat")
+      efm = [[%-G# %.%#,%A%f:%l:%c: %m,%A%f:%l: %m,%C%*\s%m,%-G%.%#]]
     })
     if exitcode ~= 0 then
       vim.cmd('copen')
@@ -39,7 +39,7 @@ M.gobuild = function()
     vim.fn.setqflist({}, ' ', {
       title = cmd,
       lines = lines,
-      efm = vim.api.nvim_buf_get_option(0, "errorformat")
+      efm = [[%-G# %.%#,%A%f:%l:%c: %m,%A%f:%l: %m,%C%*\s%m,%-G%.%#]]
     })
     if exitcode ~= 0 then
       vim.cmd('copen')
@@ -130,7 +130,7 @@ M.goiferr = function()
   end
   local pos = vim.fn.getcurpos()
   vim.fn.append(pos[2], out)
-  vim.lsp.buf.formatting()
+  vim.lsp.buf.format({ async = true })
   vim.fn.setpos('.', pos)
   vim.cmd('silent normal! 4j')
 end

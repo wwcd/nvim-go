@@ -33,6 +33,7 @@ M.asynccmd = function(cmd, callback)
     end
   end
   return vim.fn.jobstart(cmd, {
+    stdin = 'null',
     on_stdout = onevent,
     on_stderr = onevent,
     on_exit = onevent,
