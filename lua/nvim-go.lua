@@ -1,20 +1,22 @@
 local utils = require('nvim-go.utils')
 
-local M = {}
+local M = {
+  transform = 'camelcase'
+}
 
-M.goimports = function()
-  utils.codeaction(nil, "source.organizeImports", 3000)
+M.imports = function()
+  utils.codeaction(nil, 'source.organizeImports', 3000)
 end
 
-M.gofillstruct = function()
-  utils.codeaction("fill_struct", "refactor.rewrite", 3000)
+M.fillstruct = function()
+  utils.codeaction('fill_struct', 'refactor.rewrite', 3000)
 end
 
 -- TODO
-M.gofix = function()
+M.fix = function()
 end
 
-M.golint = function()
+M.lint = function()
   local cmd = 'golangci-lint run ' .. vim.fn.expand('%:p:h')
   local callback = function(exitcode, lines)
     vim.fn.setqflist({}, ' ', {
@@ -33,7 +35,7 @@ M.golint = function()
   utils.asynccmd(cmd, callback)
 end
 
-M.gobuild = function()
+M.build = function()
   local cmd = 'go build ' .. vim.fn.expand('%:p:h')
   local callback = function(exitcode, lines)
     vim.fn.setqflist({}, ' ', {
@@ -52,19 +54,19 @@ M.gobuild = function()
   utils.asynccmd(cmd, callback)
 end
 
-M.gorun = function()
+M.run = function()
   local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
-  vim.cmd('vs term://go run .|startinsert')
+  vim.cmd('vs term://go run .')
   vim.fn.chdir(origin_dir)
 end
 
-M.gotest = function()
+M.test = function()
   local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
-  vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' .|startinsert')
+  vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' .')
   vim.fn.chdir(origin_dir)
 end
 
-M.gotestfunc = function()
+M.testfunc = function()
   local ts_utils = require('nvim-treesitter.ts_utils')
   local current_node = ts_utils.get_node_at_cursor()
   if not current_node then
@@ -82,16 +84,16 @@ M.gotestfunc = function()
     return
   end
 
-  local fn_name = (ts_utils.get_node_text(expr:child(1)))[1]
+  local fn_name = vim.treesitter.query.get_node_text(expr:child(1), 0)
   if fn_name:find("Test") == 1 then
     local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
-    vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run ^' .. fn_name .. " .|startinsert")
+    vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run ^' .. fn_name .. "$ .")
     vim.fn.chdir(origin_dir)
   end
 end
 
 --TODO
-M.gocov = function()
+M.cov = function()
   local tmpfile = vim.fn.tempname()
   local cmd = 'go test -v -coverprofile ' ..  tmpfile .. ' ' .. vim.fn.fnamemodify('%', ':p:h')
   local callback = function(exitcode, _)
@@ -117,12 +119,11 @@ M.gocov = function()
       table.insert(matches, cov)
       ::continue::
     end
-    print(vim.inspect(matches))
   end
   utils.asynccmd(cmd, callback)
 end
 
-M.goiferr = function()
+M.iferr = function()
   local bpos = vim.fn.wordcount()['cursor_bytes']
   local out = vim.fn.systemlist('iferr -pos ' .. bpos, vim.fn.bufnr('%'))
   if #out == 1 then
@@ -135,11 +136,11 @@ M.goiferr = function()
   vim.cmd('silent normal! 4j')
 end
 
-M.gotag = function(s, e, a, ...)
+M.tag = function(s, e, a, t)
   local file = '-file ' .. vim.fn.fnamemodify(vim.fn.expand("%"), ':p:gs?\\?/?')
   local line = '-line ' .. s .. ',' .. e
-  local action = '-' .. a .. '-tags ' .. (next({...}) and select(1, ...) or 'json')
-  local command = 'gomodifytags ' .. file .. ' ' .. line .. ' ' .. action
+  local action = '-' .. a .. '-tags ' .. (t ~= "" and t or 'json')
+  local command = 'gomodifytags ' .. file .. ' ' .. line .. ' ' .. action .. ' -transform ' .. M.transform
   local handle = io.popen(command)
   local i = 1
   for c in handle:lines() do
@@ -151,7 +152,7 @@ M.gotag = function(s, e, a, ...)
   handle:close()
 end
 
-M.goinstall = function()
+M.install = function()
   local tools = {
     'golang.org/x/tools/gopls@latest',
     'github.com/fatih/gomodifytags@latest',
@@ -173,7 +174,7 @@ M.goinstall = function()
   end
 end
 
-M.gomodtidy = function()
+M.modtidy = function()
   local cmd = 'go mod tidy'
   local callback = function(exitcode, _)
     if exitcode ~= 0 then
@@ -187,7 +188,7 @@ M.gomodtidy = function()
   utils.asynccmd(cmd, callback)
 end
 
-M.gonewfile = function()
+M.newfile = function()
   local handle = io.popen("go list -f '{{.Name}}' " .. vim.fn.expand("%:p:h"))
   local name = handle:read('*line')
   if handle:close() == true and name ~= nil then
@@ -196,9 +197,9 @@ M.gonewfile = function()
 end
 
 M.setup = function(_)
-  vim.api.nvim_create_user_command("GoInstall", M.goinstall, {})
-  vim.api.nvim_create_autocmd({'BufWritePre'}, {pattern={'*.go'}, callback=M.goimports})
-  vim.api.nvim_create_autocmd({'BufNewFile'}, {pattern={'*.go'}, callback=M.gonewfile})
+  vim.api.nvim_create_user_command("GoInstall", M.install, {nargs=0})
+  vim.api.nvim_create_autocmd({'BufWritePre'}, {pattern={'*.go'}, callback=M.imports})
+  vim.api.nvim_create_autocmd({'BufNewFile'}, {pattern={'*.go'}, callback=M.newfile})
 end
 
 return M
