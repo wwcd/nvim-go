@@ -75,7 +75,7 @@ M.testfunc = function()
 
   local expr = current_node
   while expr do
-    if expr:type() == 'function_declaration' then
+    if expr:type() == 'function_declaration' or expr:type() == 'method_declaration' then
       break
     end
     expr = expr:parent()
@@ -84,11 +84,32 @@ M.testfunc = function()
     return
   end
 
-  local fn_name = vim.treesitter.query.get_node_text(expr:child(1), 0)
-  if fn_name:find("Test") == 1 then
-    local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
-    vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run ^' .. fn_name .. "$ .")
-    vim.fn.chdir(origin_dir)
+  local query = vim.treesitter.parse_query('go', [[name: (field_identifier) @name (#match? @name "^[A-Z_]+$")]])
+
+  for _, match, _ in query:iter_matches(expr, 0) do
+    print(vim.inspect(match))
+    local name = vim.treesitter.query.get_node_text(match[1], 0)
+    print(vim.inspect(name))
+  end
+
+  if expr:type() == 'function_declaration' then
+    local name = vim.treesitter.query.get_node_text(expr:child(1), 0)
+    if name:find("Test") == 1 then
+      local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
+      vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run ^' .. name .. '$ .')
+      vim.fn.chdir(origin_dir)
+    end
+    return
+  end
+
+  if expr:type() == 'method_declaration' then
+    local name = vim.treesitter.query.get_node_text(expr:child(2), 0)
+    if name:find("Test") == 1 then
+      local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
+      vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run . -testify.m ^' .. name ..'$')
+      vim.fn.chdir(origin_dir)
+    end
+    return
   end
 end
 
@@ -143,14 +164,35 @@ M.tag = function(s, e, a, t)
   local command = 'gomodifytags ' .. file .. ' ' .. line .. ' ' .. action .. ' -transform ' .. M.transform
   local handle = io.popen(command)
   local i = 1
-  for c in handle:lines() do
+  for v in handle:lines() do
     if i >= s and i <= e then
-      vim.fn.setline(i, c)
+      vim.fn.setline(i, v)
     end
     i = i + 1
   end
   handle:close()
 end
+
+M.impl = function(...)
+  local args = {...}
+  if vim.tbl_count(args) ~= 3 then
+    vim.api.nvim_echo({{'USAGE: GoImpl RECIEVER TYPE INTERFACE', 'ErrorMsg'}}, false, {})
+    return
+  end
+
+  local command = 'impl "' .. args[1] .. ' ' .. args[2] .. '" ' .. args[3]
+  local handle = io.popen(command)
+  local r, _ = unpack(vim.api.nvim_win_get_cursor(0))
+  local buf = {}
+  local i = 0
+  for v in handle:lines() do
+    i = i + 1
+    buf[i] = v
+  end
+  vim.api.nvim_buf_set_lines(0, r, r, true, buf)
+  handle:close()
+end
+
 
 M.install = function()
   local tools = {
@@ -158,6 +200,7 @@ M.install = function()
     'github.com/fatih/gomodifytags@latest',
     'github.com/koron/iferr@latest',
     'github.com/golangci/golangci-lint/cmd/golangci-lint@latest',
+    'github.com/josharian/impl@latest',
   }
 
   for _, v in pairs(tools) do
