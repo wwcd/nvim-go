@@ -234,9 +234,12 @@ end
 M.newfile = function()
   local handle = io.popen("go list -f '{{.Name}}' " .. vim.fn.expand("%:p:h"))
   local name = handle:read('*line')
-  if handle:close() == true and name ~= nil then
+  if name ~= nil then
     vim.fn.append(0, "package "..name)
+  else
+    vim.fn.append(0, "package main")
   end
+  handle:close()
 end
 
 M.setup = function(_)
