@@ -84,14 +84,6 @@ M.testfunc = function()
     return
   end
 
-  local query = vim.treesitter.parse_query('go', [[name: (field_identifier) @name (#match? @name "^[A-Z_]+$")]])
-
-  for _, match, _ in query:iter_matches(expr, 0) do
-    print(vim.inspect(match))
-    local name = vim.treesitter.query.get_node_text(match[1], 0)
-    print(vim.inspect(name))
-  end
-
   if expr:type() == 'function_declaration' then
     local name = vim.treesitter.query.get_node_text(expr:child(1), 0)
     if name:find("Test") == 1 then
