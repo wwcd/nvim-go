@@ -20,7 +20,7 @@ M.codeaction = function(action, only, wait_ms)
       end
     end
   end
-  vim.lsp.buf.formatting()
+  vim.lsp.buf.format({async = true})
 end
 
 M.asynccmd = function(cmd, callback)
