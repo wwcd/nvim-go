@@ -111,7 +111,7 @@ M.cov = function()
   local cmd = 'go test -v -coverprofile ' ..  tmpfile .. ' ' .. vim.fn.fnamemodify('%', ':p:h')
   local callback = function(exitcode, _)
     if exitcode ~= 0 then
-      vim.api.nvim_echo({{'[MODTIDY] FAILED', 'ErrorMsg'}}, false, {})
+      vim.api.nvim_echo({{'[COV] FAILED', 'ErrorMsg'}}, false, {})
       return
     end
 
@@ -193,6 +193,7 @@ M.install = function()
     'github.com/koron/iferr@latest',
     'github.com/golangci/golangci-lint/cmd/golangci-lint@latest',
     'github.com/josharian/impl@latest',
+    'mvdan.cc/gofumpt@latest',
   }
 
   for _, v in pairs(tools) do
@@ -213,9 +214,9 @@ M.modtidy = function()
   local cmd = 'go mod tidy'
   local callback = function(exitcode, _)
     if exitcode ~= 0 then
-      vim.cmd('LspRestart')
       vim.api.nvim_echo({{'[MODTIDY] FAILED', 'ErrorMsg'}}, false, {})
     else
+      vim.cmd('LspRestart')
       vim.api.nvim_echo({{'[MODTIDY] SUCCESS', 'Function'}}, false, {})
     end
   end
