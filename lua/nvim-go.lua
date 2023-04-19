@@ -26,9 +26,9 @@ M.lint = function()
     })
     if exitcode ~= 0 then
       vim.cmd('copen')
-      vim.api.nvim_echo({{'[LINT] FAILED', 'ErrorMsg'}}, false, {})
+      vim.api.nvim_echo({ { '[LINT] FAILED', 'ErrorMsg' } }, false, {})
     else
-      vim.api.nvim_echo({{'[LINT] SUCCESS', 'Function'}}, false, {})
+      vim.api.nvim_echo({ { '[LINT] SUCCESS', 'Function' } }, false, {})
     end
   end
   vim.fn.feedkeys(':', 'nx')
@@ -45,9 +45,9 @@ M.build = function()
     })
     if exitcode ~= 0 then
       vim.cmd('copen')
-      vim.api.nvim_echo({{'[BUILD] FAILED', 'ErrorMsg'}}, false, {})
+      vim.api.nvim_echo({ { '[BUILD] FAILED', 'ErrorMsg' } }, false, {})
     else
-      vim.api.nvim_echo({{'[BUILD] SUCCESS', 'Function'}}, false, {})
+      vim.api.nvim_echo({ { '[BUILD] SUCCESS', 'Function' } }, false, {})
     end
   end
   vim.fn.feedkeys(':', 'nx')
@@ -85,7 +85,7 @@ M.testfunc = function()
   end
 
   if expr:type() == 'function_declaration' then
-    local name = vim.treesitter.query.get_node_text(expr:child(1), 0)
+    local name = vim.treesitter.get_node_text(expr:child(1), 0)
     if name:find("Test") == 1 then
       local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
       vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run ^' .. name .. '$ .')
@@ -98,7 +98,7 @@ M.testfunc = function()
     local name = vim.treesitter.query.get_node_text(expr:child(2), 0)
     if name:find("Test") == 1 then
       local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
-      vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run . -testify.m ^' .. name ..'$')
+      vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run . -testify.m ^' .. name .. '$')
       vim.fn.chdir(origin_dir)
     end
     return
@@ -108,10 +108,10 @@ end
 --TODO
 M.cov = function()
   local tmpfile = vim.fn.tempname()
-  local cmd = 'go test -v -coverprofile ' ..  tmpfile .. ' ' .. vim.fn.fnamemodify('%', ':p:h')
+  local cmd = 'go test -v -coverprofile ' .. tmpfile .. ' ' .. vim.fn.fnamemodify('%', ':p:h')
   local callback = function(exitcode, _)
     if exitcode ~= 0 then
-      vim.api.nvim_echo({{'[COV] FAILED', 'ErrorMsg'}}, false, {})
+      vim.api.nvim_echo({ { '[COV] FAILED', 'ErrorMsg' } }, false, {})
       return
     end
 
@@ -166,9 +166,9 @@ M.tag = function(s, e, a, t)
 end
 
 M.impl = function(...)
-  local args = {...}
+  local args = { ... }
   if vim.tbl_count(args) ~= 3 then
-    vim.api.nvim_echo({{'USAGE: GoImpl RECIEVER TYPE INTERFACE', 'ErrorMsg'}}, false, {})
+    vim.api.nvim_echo({ { 'USAGE: GoImpl RECIEVER TYPE INTERFACE', 'ErrorMsg' } }, false, {})
     return
   end
 
@@ -200,9 +200,9 @@ M.install = function()
     local cmd = 'go install ' .. v
     local callback = function(exitcode, _)
       if exitcode ~= 0 then
-        vim.api.nvim_echo({{'[INSTALL] '..v..' FAILED', 'ErrorMsg'}}, true, {})
+        vim.api.nvim_echo({ { '[INSTALL] ' .. v .. ' FAILED', 'ErrorMsg' } }, true, {})
       else
-        vim.api.nvim_echo({{'[INSTALL] '..v..' SUCCESS', 'Function'}}, true, {})
+        vim.api.nvim_echo({ { '[INSTALL] ' .. v .. ' SUCCESS', 'Function' } }, true, {})
       end
     end
     utils.asynccmd(cmd, callback)
@@ -214,10 +214,10 @@ M.modtidy = function()
   local cmd = 'go mod tidy'
   local callback = function(exitcode, _)
     if exitcode ~= 0 then
-      vim.api.nvim_echo({{'[MODTIDY] FAILED', 'ErrorMsg'}}, false, {})
+      vim.api.nvim_echo({ { '[MODTIDY] FAILED', 'ErrorMsg' } }, false, {})
     else
       vim.cmd('LspRestart')
-      vim.api.nvim_echo({{'[MODTIDY] SUCCESS', 'Function'}}, false, {})
+      vim.api.nvim_echo({ { '[MODTIDY] SUCCESS', 'Function' } }, false, {})
     end
   end
   vim.fn.feedkeys(':', 'nx')
@@ -228,7 +228,7 @@ M.newfile = function()
   local handle = io.popen("go list -f '{{.Name}}' " .. vim.fn.expand("%:p:h"))
   local name = handle:read('*line')
   if name ~= nil then
-    vim.fn.append(0, "package "..name)
+    vim.fn.append(0, "package " .. name)
   else
     vim.fn.append(0, "package main")
   end
@@ -236,9 +236,9 @@ M.newfile = function()
 end
 
 M.setup = function(_)
-  vim.api.nvim_create_user_command("GoInstall", M.install, {nargs=0})
-  vim.api.nvim_create_autocmd({'BufWritePre'}, {pattern={'*.go'}, callback=M.imports})
-  vim.api.nvim_create_autocmd({'BufNewFile'}, {pattern={'*.go'}, callback=M.newfile})
+  vim.api.nvim_create_user_command("GoInstall", M.install, { nargs = 0 })
+  vim.api.nvim_create_autocmd({ 'BufWritePre' }, { pattern = { '*.go' }, callback = M.imports })
+  vim.api.nvim_create_autocmd({ 'BufNewFile' }, { pattern = { '*.go' }, callback = M.newfile })
 end
 
 return M
