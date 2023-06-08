@@ -197,7 +197,7 @@ M.install = function()
   }
 
   for _, v in pairs(tools) do
-    local cmd = 'go install ' .. v
+    local cmd = 'CGO_ENABLED=0 go install ' .. v
     local callback = function(exitcode, _)
       if exitcode ~= 0 then
         vim.api.nvim_echo({ { '[INSTALL] ' .. v .. ' FAILED', 'ErrorMsg' } }, true, {})
