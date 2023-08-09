@@ -5,7 +5,8 @@ local M = {
 }
 
 M.imports = function()
-  utils.codeaction(nil, 'source.organizeImports', 3000)
+  -- utils.codeaction(nil, 'source.organizeImports', 3000)
+  vim.lsp.buf.code_action({ context = { only = { 'source.organizeImports' } }, apply = true })
 end
 
 M.fillstruct = function()
@@ -155,6 +156,9 @@ M.tag = function(s, e, a, t)
   local action = '-' .. a .. '-tags ' .. (t ~= "" and t or 'json')
   local command = 'gomodifytags ' .. file .. ' ' .. line .. ' ' .. action .. ' -transform ' .. M.transform
   local handle = io.popen(command)
+  if handle == nil then
+    return
+  end
   local i = 1
   for v in handle:lines() do
     if i >= s and i <= e then
@@ -174,6 +178,9 @@ M.impl = function(...)
 
   local command = 'impl "' .. args[1] .. ' ' .. args[2] .. '" ' .. args[3]
   local handle = io.popen(command)
+  if handle == nil then
+    return
+  end
   local r, _ = unpack(vim.api.nvim_win_get_cursor(0))
   local buf = {}
   local i = 0
@@ -226,6 +233,9 @@ end
 
 M.newfile = function()
   local handle = io.popen("go list -f '{{.Name}}' " .. vim.fn.expand("%:p:h"))
+  if handle == nil then
+    return
+  end
   local name = handle:read('*line')
   if name ~= nil then
     vim.fn.append(0, "package " .. name)
