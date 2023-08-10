@@ -5,8 +5,8 @@ local M = {
 }
 
 M.imports = function()
-  -- utils.codeaction(nil, 'source.organizeImports', 3000)
-  vim.lsp.buf.code_action({ context = { only = { 'source.organizeImports' } }, apply = true })
+  utils.codeaction(nil, 'source.organizeImports', 3000)
+  -- vim.lsp.buf.code_action({ context = { only = { 'source.organizeImports' } }, apply = true })
 end
 
 M.fillstruct = function()
