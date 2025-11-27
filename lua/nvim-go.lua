@@ -198,7 +198,7 @@ M.install = function()
     'golang.org/x/tools/gopls@latest',
     'github.com/fatih/gomodifytags@latest',
     'github.com/koron/iferr@latest',
-    'github.com/golangci/golangci-lint/cmd/golangci-lint@latest',
+    'github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest',
     'github.com/josharian/impl@latest',
     'mvdan.cc/gofumpt@latest',
   }
