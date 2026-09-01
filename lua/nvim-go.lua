@@ -68,8 +68,7 @@ M.test = function()
 end
 
 M.testfunc = function()
-  local ts_utils = require('nvim-treesitter.ts_utils')
-  local current_node = ts_utils.get_node_at_cursor()
+  local current_node = vim.treesitter.get_node()
   if not current_node then
     return
   end
@@ -79,7 +78,7 @@ M.testfunc = function()
     if expr:type() == 'function_declaration' or expr:type() == 'method_declaration' then
       break
     end
-    expr = expr:parent()
+    expr = expr:parent()  --[[@as TSNode]]
   end
   if not expr then
     return
