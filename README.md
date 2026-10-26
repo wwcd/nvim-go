@@ -6,7 +6,6 @@ requires at least Neovim 0.6.0.
 
 * :GoAddTag
 * :GoBuild
-* :GoFillStruct
 * :GoIferr
 * :GoImports
 * :GoInstall
