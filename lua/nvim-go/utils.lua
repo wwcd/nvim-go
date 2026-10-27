@@ -13,7 +13,7 @@ M.asynccmd = function(cmd, callback)
     stdin = 'null',
     on_stdout = onevent,
     on_stderr = onevent,
-    on_exit = onevent,
+    on_exit = onevent
   })
 end
 

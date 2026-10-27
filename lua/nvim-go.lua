@@ -2,7 +2,7 @@ local utils = require('nvim-go.utils')
 
 local M = { transform = 'camelcase' }
 
-M.imports = function ()
+M.imports = function()
   local params = vim.lsp.util.make_range_params(0, "utf-8")
   ---@diagnostic disable-next-line: inject-field
   params.context = { only = { "source.organizeImports" } }
@@ -19,12 +19,12 @@ M.imports = function ()
 end
 
 -- TODO
-M.fix = function ()
+M.fix = function()
 end
 
-M.lint = function ()
+M.lint = function()
   local cmd = 'golangci-lint run ' .. vim.fn.expand('%:p:h')
-  local callback = function (exitcode, lines)
+  local callback = function(exitcode, lines)
     vim.fn.setqflist({}, ' ', {
       title = cmd,
       lines = lines,
@@ -41,9 +41,9 @@ M.lint = function ()
   utils.asynccmd(cmd, callback)
 end
 
-M.build = function ()
+M.build = function()
   local cmd = 'go build ' .. vim.fn.expand('%:p:h')
-  local callback = function (exitcode, lines)
+  local callback = function(exitcode, lines)
     vim.fn.setqflist({}, ' ', {
       title = cmd,
       lines = lines,
@@ -60,19 +60,19 @@ M.build = function ()
   utils.asynccmd(cmd, callback)
 end
 
-M.run = function ()
+M.run = function()
   local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
   vim.cmd('vs term://go run .')
   vim.fn.chdir(origin_dir)
 end
 
-M.test = function ()
+M.test = function()
   local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
   vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' .')
   vim.fn.chdir(origin_dir)
 end
 
-M.testfunc = function ()
+M.testfunc = function()
   local current_node = vim.treesitter.get_node()
   if not current_node then
     return
@@ -90,7 +90,10 @@ M.testfunc = function ()
   end
 
   if expr:type() == 'function_declaration' then
-    local name = vim.treesitter.get_node_text(expr:child(1) --[[@as TSNode]], 0)
+    local name = vim.treesitter.get_node_text(
+      expr:child(1), --[[@as TSNode]]
+      0
+    )
     if name:find("Test") == 1 then
       local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
       vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run ^' .. name .. '$ .')
@@ -100,7 +103,10 @@ M.testfunc = function ()
   end
 
   if expr:type() == 'method_declaration' then
-    local name = vim.treesitter.get_node_text(expr:child(2) --[[@as TSNode]], 0)
+    local name = vim.treesitter.get_node_text(
+      expr:child(2), --[[@as TSNode]]
+      0
+    )
     if name:find("Test") == 1 then
       local origin_dir = vim.fn.chdir(vim.fn.expand('%:p:h'))
       vim.cmd('vs term://go test -v -coverprofile ' .. vim.fn.tempname() .. ' -run . -testify.m ^' .. name .. '$')
@@ -111,10 +117,10 @@ M.testfunc = function ()
 end
 
 -- TODO
-M.cov = function ()
+M.cov = function()
   local tmpfile = vim.fn.tempname()
   local cmd = 'go test -v -coverprofile ' .. tmpfile .. ' ' .. vim.fn.fnamemodify('%', ':p:h')
-  local callback = function (exitcode, _)
+  local callback = function(exitcode, _)
     if exitcode ~= 0 then
       vim.api.nvim_echo({ { '[COV] FAILED', 'ErrorMsg' } }, false, {})
       return
@@ -141,7 +147,7 @@ M.cov = function ()
   utils.asynccmd(cmd, callback)
 end
 
-M.iferr = function ()
+M.iferr = function()
   local bpos = vim.fn.wordcount()['cursor_bytes']
   local out = vim.fn.systemlist('iferr -pos ' .. bpos, vim.fn.bufnr('%'))
   if #out == 1 then
@@ -154,7 +160,7 @@ M.iferr = function ()
   vim.cmd('silent normal! 4j')
 end
 
-M.tag = function (s, e, a, t)
+M.tag = function(s, e, a, t)
   local file = '-file ' .. vim.fn.fnamemodify(vim.fn.expand("%"), ':p:gs?\\?/?')
   local line = '-line ' .. s .. ',' .. e
   local action = '-' .. a .. '-tags ' .. (t ~= "" and t or 'json')
@@ -173,7 +179,7 @@ M.tag = function (s, e, a, t)
   handle:close()
 end
 
-M.impl = function (...)
+M.impl = function(...)
   local args = { ... }
   if vim.tbl_count(args) ~= 3 then
     vim.api.nvim_echo({ { 'USAGE: GoImpl RECIEVER TYPE INTERFACE', 'ErrorMsg' } }, false, {})
@@ -196,7 +202,7 @@ M.impl = function (...)
   handle:close()
 end
 
-M.install = function ()
+M.install = function()
   local tools = {
     'golang.org/x/tools/gopls@latest',
     'github.com/fatih/gomodifytags@latest',
@@ -208,7 +214,7 @@ M.install = function ()
 
   for _, v in pairs(tools) do
     local cmd = 'CGO_ENABLED=0 go install -ldflags="-s -buildid=" ' .. v
-    local callback = function (exitcode, _)
+    local callback = function(exitcode, _)
       if exitcode ~= 0 then
         vim.api.nvim_echo({ { '[INSTALL] ' .. v .. ' FAILED', 'ErrorMsg' } }, true, {})
       else
@@ -220,9 +226,9 @@ M.install = function ()
   end
 end
 
-M.modtidy = function ()
+M.modtidy = function()
   local cmd = 'go mod tidy'
-  local callback = function (exitcode, _)
+  local callback = function(exitcode, _)
     if exitcode ~= 0 then
       vim.api.nvim_echo({ { '[MODTIDY] FAILED', 'ErrorMsg' } }, false, {})
     else
@@ -234,7 +240,7 @@ M.modtidy = function ()
   utils.asynccmd(cmd, callback)
 end
 
-M.newfile = function ()
+M.newfile = function()
   local handle = io.popen("go list -f '{{.Name}}' " .. vim.fn.expand("%:p:h"))
   if handle == nil then
     return
@@ -248,7 +254,7 @@ M.newfile = function ()
   handle:close()
 end
 
-M.setup = function (_)
+M.setup = function(_)
   vim.api.nvim_create_user_command("GoInstall", M.install, { nargs = 0 })
   vim.api.nvim_create_autocmd({ 'BufWritePre' }, { pattern = { '*.go' }, callback = M.imports })
   vim.api.nvim_create_autocmd({ 'BufNewFile' }, { pattern = { '*.go' }, callback = M.newfile })
